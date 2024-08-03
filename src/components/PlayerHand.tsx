@@ -1,66 +1,59 @@
 // src/components/PlayerHand.tsx
 import React from 'react';
-import { Button, Grid, Typography } from '@material-ui/core';
-import { GameState, Player, Card } from '../utils/gameTypes';
-import { playCard, drawCard } from '../utils/gameLogic';
+import { Grid, Button, Typography } from '@material-ui/core';
+import { Player, Card } from '../utils/gameTypes';
+import { useGameStyles } from '../styles/gameStyles';
+
+// Import card images
+import skipImage from '../assets/skip.jpg';
+import attackImage from '../assets/attack.jpg';
+import seeTheFutureImage from '../assets/see-the-future.jpg';
+import shuffleImage from '../assets/shuffle.jpg';
+import favorImage from '../assets/favor.jpg';
+import defuseImage from '../assets/defuse.jpg';
+import explodingKittenImage from '../assets/exploding-kitten.jpg';
+import nopeImage from '../assets/nope.jpg';
+import cattermelonImage from '../assets/cattermelon.jpg';
+import hairyPotatoCatImage from '../assets/hairy-potato-cat.jpg';
+
+const cardImages: { [key: string]: string } = {
+  skip: skipImage,
+  attack: attackImage,
+  'see-the-future': seeTheFutureImage,
+  shuffle: shuffleImage,
+  favor: favorImage,
+  defuse: defuseImage,
+  'exploding-kitten': explodingKittenImage,
+  nope: nopeImage,
+  cattermelon: cattermelonImage,
+  'hairy-potato-cat': hairyPotatoCatImage,
+};
 
 interface Props {
   player: Player;
-  gameState: GameState;
-  updateGameState: (newState: GameState) => void;
+  onPlayCard: (cardIndex: number) => void;
+  isCurrentTurn: boolean;
 }
 
-export const PlayerHand: React.FC<Props> = ({ player, gameState, updateGameState }) => {
-  const isCurrentTurn = gameState.players[gameState.currentTurn].name === player.name;
-
-  const handlePlayCard = (cardIndex: number) => {
-    if (!isCurrentTurn) return;
-    const newGameState = playCard(player, cardIndex, gameState);
-    updateGameState(newGameState);
-  };
-
-  const handleDrawCard = () => {
-    if (!isCurrentTurn) return;
-    const { player: updatedPlayer, deck: updatedDeck, exploded } = drawCard(player, gameState.deck);
-    const updatedPlayers = gameState.players.map(p => p.name === player.name ? updatedPlayer : p);
-    const updatedGameState = {
-      ...gameState,
-      players: updatedPlayers,
-      deck: updatedDeck,
-      currentTurn: (gameState.currentTurn + 1) % gameState.players.length
-    };
-    updateGameState(updatedGameState);
-
-    if (exploded) {
-      alert('You drew an Exploding Kitten! Game Over for you!');
-    }
-  };
+export const PlayerHand: React.FC<Props> = ({ player, onPlayCard, isCurrentTurn }) => {
+  const classes = useGameStyles();
 
   return (
     <div>
-      <Typography variant="h6">Your Hand</Typography>
-      <Grid container spacing={1}>
+      <Typography variant="h6" gutterBottom>Your Hand</Typography>
+      <Grid container className={classes.playerHand}>
         {player.hand.map((card: Card, index: number) => (
           <Grid item key={card.id}>
             <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handlePlayCard(index)}
+              className={classes.card}
+              onClick={() => onPlayCard(index)}
               disabled={!isCurrentTurn}
             >
-              {card.type}
+              <img src={cardImages[card.type]} alt={card.type} className={classes.cardImage} />
             </Button>
           </Grid>
         ))}
       </Grid>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={handleDrawCard}
-        disabled={!isCurrentTurn}
-      >
-        Draw Card
-      </Button>
     </div>
   );
 };

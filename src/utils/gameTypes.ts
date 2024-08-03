@@ -1,5 +1,5 @@
 // src/utils/gameTypes.ts
-export type CardType = 'attack' | 'skip' | 'favor' | 'shuffle' | 'see-the-future' | 'nope' | 'defuse' | 'exploding-kitten' | 'cat';
+export type CardType = 'skip' | 'attack' | 'favor' | 'shuffle' | 'see-the-future' | 'nope' | 'defuse' | 'exploding-kitten' | 'cattermelon' | 'hairy-potato-cat';
 
 export interface Card {
   type: CardType;
@@ -11,6 +11,8 @@ export interface Player {
   hand: Card[];
 }
 
+// In gameTypes.ts
+
 export interface GameState {
   players: Player[];
   currentTurn: number;
@@ -18,7 +20,12 @@ export interface GameState {
   discardPile: Card[];
   gameOver: boolean;
   winner: string | null;
+  currentAction: string | null;
+  gameStarted: boolean;
+  attackTurns: number;
+  favorRequester: string | null;
+  topThreeCards: Card[] | null;
+  lastActionNoped: boolean;
 }
-
 export const INITIAL_CARD_COUNT = 7;
-export const MAX_PLAYERS = 10;
+export const MAX_PLAYERS = 5;

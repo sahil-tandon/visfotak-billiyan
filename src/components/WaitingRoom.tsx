@@ -1,7 +1,8 @@
 // src/components/WaitingRoom.tsx
 import React from 'react';
-import { Button, Typography, List, ListItem, ListItemText } from '@material-ui/core';
+import { Button, Typography, List, ListItem, ListItemText, Paper } from '@material-ui/core';
 import { Player } from '../utils/gameTypes';
+import { useGameStyles } from '../styles/gameStyles';
 
 interface Props {
   players: Player[];
@@ -10,9 +11,11 @@ interface Props {
 }
 
 export const WaitingRoom: React.FC<Props> = ({ players, onStartGame, isHost }) => {
+  const classes = useGameStyles();
+
   return (
-    <div>
-      <Typography variant="h5">Waiting Room</Typography>
+    <Paper className={classes.gameBoard}>
+      <Typography variant="h5" gutterBottom>Waiting Room</Typography>
       <List>
         {players.map((player) => (
           <ListItem key={player.name}>
@@ -21,11 +24,17 @@ export const WaitingRoom: React.FC<Props> = ({ players, onStartGame, isHost }) =
         ))}
       </List>
       {isHost && (
-        <Button variant="contained" color="primary" onClick={onStartGame} disabled={players.length < 2}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={onStartGame} 
+          disabled={players.length < 2}
+          className={classes.actionButton}
+        >
           Start Game
         </Button>
       )}
       {!isHost && <Typography>Waiting for host to start the game...</Typography>}
-    </div>
+    </Paper>
   );
 };

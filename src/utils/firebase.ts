@@ -1,11 +1,11 @@
 // src/utils/firebase.ts
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBFP_TZPFrY5ussM8z6fnpQ9-F75iwjL9w",
   authDomain: "visfotak-billiyan.firebaseapp.com",
+  databaseURL: "https://visfotak-billiyan-default-rtdb.firebaseio.com",
   projectId: "visfotak-billiyan",
   storageBucket: "visfotak-billiyan.appspot.com",
   messagingSenderId: "497865706297",
@@ -14,5 +14,4 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
 export const rtdb = getDatabase(app);

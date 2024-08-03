@@ -9,7 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 const theme = createTheme({
   palette: {
-    type: 'dark',
+    type: 'light',
   },
 });
 
@@ -22,7 +22,7 @@ const App: React.FC = () => {
       <CssBaseline />
       <ErrorBoundary 
         fallback={<div>An error occurred. Please refresh the page.</div>} 
-        onError={(error, errorInfo) => handleError(error)}
+        onError={(error) => handleError(error)}
       >
         {!roomCode ? (
           <RoomCreation onJoinRoom={(code, name) => {
