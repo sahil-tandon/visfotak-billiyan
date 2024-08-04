@@ -1,4 +1,3 @@
-// src/components/PlayerList.tsx
 import React from 'react';
 import { List, ListItem, ListItemText, Paper, Typography } from '@material-ui/core';
 import { Player } from '../utils/gameTypes';
@@ -20,7 +19,7 @@ export const PlayerList: React.FC<Props> = ({ players, currentTurn }) => {
           <ListItem key={player.name} selected={index === currentTurn}>
             <ListItemText 
               primary={player.name} 
-              secondary={`Cards: ${player.hand.length}`} 
+              secondary={`Cards: ${player.hand?.length || 0}`} 
             />
           </ListItem>
         ))}

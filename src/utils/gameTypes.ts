@@ -8,7 +8,7 @@ export interface Card {
 
 export interface Player {
   name: string;
-  hand: Card[];
+  hand: Card[];  // Make hand a required property, but it can be an empty array
 }
 
 // In gameTypes.ts
@@ -26,6 +26,7 @@ export interface GameState {
   favorRequester: string | null;
   topThreeCards: Card[] | null;
   lastActionNoped: boolean;
+  explodingKittenDrawn?: Card | null;
 }
 export const INITIAL_CARD_COUNT = 7;
 export const MAX_PLAYERS = 5;

@@ -38,6 +38,15 @@ interface Props {
 export const PlayerHand: React.FC<Props> = ({ player, onPlayCard, isCurrentTurn }) => {
   const classes = useGameStyles();
 
+  if (!player.hand || player.hand.length === 0) {
+    return (
+      <div>
+        <Typography variant="h6" gutterBottom>Your Hand</Typography>
+        <Typography>Your hand is empty. Draw a card on your turn.</Typography>
+      </div>
+    );
+  }
+
   return (
     <div>
       <Typography variant="h6" gutterBottom>Your Hand</Typography>

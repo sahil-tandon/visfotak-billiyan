@@ -11,12 +11,7 @@ export function createDeck(): Card[] {
     }
   });
 
-  // Add exploding kittens
-  for (let i = 0; i < 3; i++) {
-    deck.push({ type: 'exploding-kitten', id: `exploding-kitten-${i}` });
-  }
-
-  return shuffleDeck(deck);
+  return deck;
 }
 
 export function shuffleDeck(deck: Card[]): Card[] {
@@ -42,13 +37,19 @@ export function dealInitialHands(players: Player[], deck: Card[]): { players: Pl
 }
 
 export function initializeGameState(currentState: GameState): GameState {
-  const shuffledDeck = shuffleDeck(createDeck());
-  const { players: playersWithHands, deck: remainingDeck } = dealInitialHands(currentState.players, shuffledDeck);
+  let shuffledDeck = shuffleDeck(createDeck());
+  const { players: playersWithHands, deck: remainingDeck } = dealInitialHands(
+    currentState.players.map(p => ({ ...p, hand: p.hand || [] })),
+    shuffledDeck
+  );
+
+  const explodingKittens = Array(currentState.players.length - 1).fill(null).map((_, i) => ({ type: 'exploding-kitten' as CardType, id: `exploding-kitten-${i}` }));
+  shuffledDeck = shuffleDeck([...remainingDeck, ...explodingKittens]);
 
   return {
     ...currentState,
     players: playersWithHands,
-    deck: remainingDeck,
+    deck: shuffledDeck,
     discardPile: [],
     currentTurn: 0,
     gameStarted: true,
@@ -58,11 +59,16 @@ export function initializeGameState(currentState: GameState): GameState {
     attackTurns: 0,
     favorRequester: null,
     topThreeCards: null,
-    lastActionNoped: false
+    lastActionNoped: false,
+    explodingKittenDrawn: null
   };
 }
 
 export function playCard(player: Player, cardIndex: number, gameState: GameState): GameState {
+  if (!player.hand || player.hand.length === 0 || cardIndex >= player.hand.length) {
+    console.error("Invalid card play attempt");
+    return gameState;
+  }
   const card = player.hand[cardIndex];
   const updatedPlayer = {
     ...player,
@@ -172,41 +178,34 @@ export function drawCard(player: Player, gameState: GameState): GameState {
   }
 
   const [drawnCard, ...remainingDeck] = gameState.deck;
-  let updatedPlayer = {
-    ...player,
-    hand: [...player.hand, drawnCard]
-  };
-
-  let updatedGameState: GameState = {
-    ...gameState,
-    deck: remainingDeck,
-    currentAction: null,
-    topThreeCards: null
-  };
+  let updatedPlayer = { ...player, hand: player.hand || [] };
+  let updatedGameState: GameState = { ...gameState, deck: remainingDeck };
 
   if (drawnCard.type === 'exploding-kitten') {
     const defuseIndex = updatedPlayer.hand.findIndex(card => card.type === 'defuse');
     if (defuseIndex !== -1) {
       // Player has a defuse card
       updatedPlayer.hand.splice(defuseIndex, 1);
-      const insertIndex = Math.floor(Math.random() * (updatedGameState.deck.length + 1));
-      updatedGameState.deck.splice(insertIndex, 0, drawnCard);
-      updatedGameState.currentAction = 'defused';
+      updatedGameState.currentAction = 'defusing';
+      updatedGameState.explodingKittenDrawn = drawnCard;
     } else {
       // Player explodes
       updatedGameState.players = updatedGameState.players.filter(p => p.name !== player.name);
       updatedGameState.currentAction = 'exploded';
+      updatedGameState.discardPile.push(drawnCard);
       if (updatedGameState.players.length === 1) {
         updatedGameState.gameOver = true;
         updatedGameState.winner = updatedGameState.players[0].name;
       }
     }
+  } else {
+    updatedPlayer.hand.push(drawnCard);
   }
 
   updatedGameState.players = updatedGameState.players.map(p => p.name === player.name ? updatedPlayer : p);
 
-  // Move to next player's turn if not exploded
-  if (updatedGameState.currentAction !== 'exploded') {
+  // Move to next player's turn if not exploded or defusing
+  if (updatedGameState.currentAction !== 'exploded' && updatedGameState.currentAction !== 'defusing') {
     updatedGameState.currentTurn = (updatedGameState.currentTurn + 1) % updatedGameState.players.length;
     updatedGameState.attackTurns = Math.max((updatedGameState.attackTurns || 0) - 1, 0);
   }
@@ -223,4 +222,22 @@ export function checkGameOver(gameState: GameState): GameState {
     };
   }
   return gameState;
+}
+
+export function defuseExplodingKitten(gameState: GameState, insertIndex: number): GameState {
+  if (!gameState.explodingKittenDrawn) {
+    console.error("No exploding kitten to defuse");
+    return gameState;
+  }
+
+  const updatedDeck = [...gameState.deck];
+  updatedDeck.splice(insertIndex, 0, gameState.explodingKittenDrawn);
+
+  return {
+    ...gameState,
+    deck: updatedDeck,
+    explodingKittenDrawn: null,
+    currentAction: null,
+    currentTurn: (gameState.currentTurn + 1) % gameState.players.length,
+  };
 }

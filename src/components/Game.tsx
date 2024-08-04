@@ -6,7 +6,7 @@ import { PlayerHand } from './PlayerHand';
 import { GameBoard } from './GameBoard';
 import { PlayerList } from './PlayerList';
 import { WaitingRoom } from './WaitingRoom';
-import { playCard, drawCard, checkGameOver, initializeGameState } from '../utils/gameLogic';
+import { playCard, drawCard, checkGameOver, initializeGameState, defuseExplodingKitten } from '../utils/gameLogic';
 import { GameState, Player } from '../utils/gameTypes';
 import { useGameStyles } from '../styles/gameStyles';
 
@@ -81,12 +81,22 @@ export const Game: React.FC<Props> = ({ roomCode, playerName }) => {
     if (!isCurrentTurn) return;
     const newGameState = drawCard(currentPlayer, gameState);
     updateGameState(checkGameOver(newGameState));
+
+    if (newGameState.currentAction === 'defusing') {
+      // Prompt the player to choose where to insert the exploding kitten
+      const insertIndex = prompt("Choose a position to insert the Exploding Kitten (0 to " + newGameState.deck.length + ")");
+      if (insertIndex !== null) {
+        const index = parseInt(insertIndex);
+        const defusedState = defuseExplodingKitten(newGameState, index);
+        updateGameState(checkGameOver(defusedState));
+      }
+    }
   };
 
   const handleFavorRequest = (targetPlayerName: string, cardIndex: number) => {
     if (gameState.currentAction !== 'favor' || gameState.favorRequester !== playerName) return;
     const targetPlayer = gameState.players.find(p => p.name === targetPlayerName);
-    if (!targetPlayer) return;
+    if (!targetPlayer || !targetPlayer.hand || targetPlayer.hand.length === 0) return;
 
     const card = targetPlayer.hand[cardIndex];
     const updatedTargetPlayer = {
@@ -95,7 +105,7 @@ export const Game: React.FC<Props> = ({ roomCode, playerName }) => {
     };
     const updatedCurrentPlayer = {
       ...currentPlayer,
-      hand: [...currentPlayer.hand, card]
+      hand: [...(currentPlayer.hand || []), card]
     };
 
     const updatedPlayers = gameState.players.map(p => 
@@ -134,20 +144,26 @@ export const Game: React.FC<Props> = ({ roomCode, playerName }) => {
           <PlayerList players={gameState.players} currentTurn={gameState.currentTurn} />
         </Grid>
         <Grid item xs={12} md={9}>
-          <div className={classes.gameBoard}>
-            <GameBoard gameState={gameState} currentPlayerName={playerName} />
-            <PlayerHand player={currentPlayer} onPlayCard={handlePlayCard} isCurrentTurn={isCurrentTurn} />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleDrawCard}
-              disabled={!isCurrentTurn}
-              className={classes.actionButton}
-            >
-              Draw Card
-            </Button>
-          </div>
-        </Grid>
+      <div className={classes.gameBoard}>
+        <GameBoard gameState={gameState} currentPlayerName={playerName} />
+        {currentPlayer && (
+          <PlayerHand 
+            player={currentPlayer} 
+            onPlayCard={handlePlayCard} 
+            isCurrentTurn={isCurrentTurn} 
+          />
+        )}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleDrawCard}
+          disabled={!isCurrentTurn}
+          className={classes.actionButton}
+        >
+          Draw Card
+        </Button>
+      </div>
+    </Grid>
       </Grid>
     </Container>
   );
